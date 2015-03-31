@@ -190,7 +190,6 @@ class enrol_coupon_enrol_form extends moodleform {
         	$helper = new enrol_coupon_helper();
         	$wasvalid = $helper->use_couponcode($instance->id, $data['couponcode']);
             if ($wasvalid !==true) {             
-                // We can not hint because there are probably multiple passwords.
                 $errors['couponcode'] = $wasvalid;
             }
         }

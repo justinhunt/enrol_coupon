@@ -29,15 +29,6 @@ if ($ADMIN->fulltree) {
     //--- general settings -----------------------------------------------------------------------------------
     $settings->add(new admin_setting_heading('enrol_coupon_settings', '', get_string('pluginname_desc', 'enrol_coupon')));
 
-    $settings->add(new admin_setting_configcheckbox('enrol_coupon/requirepassword',
-        get_string('requirepassword', 'enrol_coupon'), get_string('requirepassword_desc', 'enrol_coupon'), 0));
-
-    $settings->add(new admin_setting_configcheckbox('enrol_coupon/usepasswordpolicy',
-        get_string('usepasswordpolicy', 'enrol_coupon'), get_string('usepasswordpolicy_desc', 'enrol_coupon'), 0));
-
-    $settings->add(new admin_setting_configcheckbox('enrol_coupon/showhint',
-        get_string('showhint', 'enrol_coupon'), get_string('showhint_desc', 'enrol_coupon'), 0));
-
     // Note: let's reuse the ext sync constants and strings here, internally it is very similar,
     //       it describes what should happend when users are not supposed to be enerolled any more.
     $options = array(

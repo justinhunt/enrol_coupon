@@ -71,9 +71,8 @@ class enrol_coupon_plugin extends enrol_plugin {
                 continue;
             }
             
-            //we dont do group keys, just coupons
-            //if ($instance->password or $instance->customint1) {
-            if ($instance->password) {
+            //we dont do group keys
+            if ($instance->{ENROL_COUPON_SHOW_COUPON_FIELD}) {
                 $key = true;
             } else {
                 $nokey = true;
@@ -204,7 +203,7 @@ class enrol_coupon_plugin extends enrol_plugin {
         if (!has_capability('moodle/course:enrolconfig', $context) or !has_capability('enrol/coupon:config', $context)) {
             return NULL;
         }
-        // Multiple instances supported - different roles with different password.
+        // Multiple instances supported
         return new moodle_url('/enrol/coupon/edit.php', array('courseid'=>$courseid));
     }
 
@@ -219,9 +218,11 @@ class enrol_coupon_plugin extends enrol_plugin {
         global $DB, $USER, $CFG;
 
         // Don't enrol user if password is not passed when required.
+        /*
         if ($instance->password && !isset($data->enrolpassword)) {
             return;
         }
+        */
 
         $timestart = time();
         if ($instance->enrolperiod) {

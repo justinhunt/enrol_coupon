@@ -157,32 +157,7 @@ class enrol_coupon_edit_form extends moodleform {
         $errors = parent::validation($data, $files);
 
         list($instance, $plugin, $context) = $this->_customdata;
-        $checkpassword = false;
-
-        if ($instance->id) {
-            if ($data['status'] == ENROL_INSTANCE_ENABLED) {
-                if ($instance->password !== $data['password']) {
-                    $checkpassword = true;
-                }
-            }
-        } else {
-            if ($data['status'] == ENROL_INSTANCE_ENABLED) {
-                $checkpassword = true;
-            }
-        }
-
-        if ($checkpassword) {
-            $require = $plugin->get_config('requirepassword');
-            $policy  = $plugin->get_config('usepasswordpolicy');
-            if ($require and trim($data['password']) === '') {
-                $errors['password'] = get_string('required');
-            } else if ($policy) {
-                $errmsg = '';//prevent eclipse warning
-                if (!check_password_policy($data['password'], $errmsg)) {
-                    $errors['password'] = $errmsg;
-                }
-            }
-        }
+ 
 
         if ($data['status'] == ENROL_INSTANCE_ENABLED) {
             if (!empty($data['enrolenddate']) and $data['enrolenddate'] < $data['enrolstartdate']) {
