@@ -37,6 +37,7 @@ define('ENROL_COUPON_UNENROL_DAYS','customint2');
 define('ENROL_COUPON_SEND_COURSE_WELCOME','customint4');
 define('ENROL_COUPON_COHORT_ONLY','customint5');
 define('ENROL_COUPON_CUSTOM_WELCOME_TEXT','customtext1');
+define('ENROL_COUPON_ENROL_BUTTON_TEXT','customtext2');
 /**
  * Self enrolment plugin implementation.
  * @author Petr Skoda

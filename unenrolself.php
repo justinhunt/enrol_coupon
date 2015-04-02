@@ -23,6 +23,7 @@
  */
 
 require('../../config.php');
+require('lib.php');
 
 $enrolid = required_param('enrolid', PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_BOOL);
@@ -37,7 +38,7 @@ if (!is_enrolled($context)) {
 }
 require_login($course);
 
-$plugin = enrol_get_plugin('self');
+$plugin = enrol_get_plugin(ENROL_COUPON_ENROLTYPE);
 
 // Security defined inside following function.
 if (!$plugin->get_unenrolself_link($instance)) {

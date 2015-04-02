@@ -131,6 +131,11 @@ class enrol_coupon_edit_form extends moodleform {
             $mform->setType(ENROL_COUPON_COHORT_ONLY, PARAM_INT);
             $mform->setConstant(ENROL_COUPON_COHORT_ONLY, 0);
         }
+        
+        $mform->addElement('text', ENROL_COUPON_ENROL_BUTTON_TEXT, get_string('custombuttontext', 'enrol_coupon'));
+        $mform->addHelpButton(ENROL_COUPON_ENROL_BUTTON_TEXT, 'custombuttontext', 'enrol_coupon');
+        $mform->setType(ENROL_COUPON_ENROL_BUTTON_TEXT, PARAM_TEXT);
+        
 
         $mform->addElement('advcheckbox', ENROL_COUPON_SEND_COURSE_WELCOME, get_string('sendcoursewelcomemessage', 'enrol_coupon'));
         $mform->addHelpButton(ENROL_COUPON_SEND_COURSE_WELCOME, 'sendcoursewelcomemessage', 'enrol_coupon');

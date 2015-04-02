@@ -144,7 +144,9 @@ class enrol_coupon_enrol_form extends moodleform {
 
     public function definition() {
         $mform = $this->_form;
-        $instance = $this->_customdata;
+       	$instance = $this->_customdata;
+		$buttontext = $instance->{ENROL_COUPON_ENROL_BUTTON_TEXT};
+       	if(empty($buttontext)){$buttontext = get_string('enrolme', 'enrol_coupon');}
         $this->instance = $instance;
         $plugin = enrol_get_plugin(ENROL_COUPON_ENROLTYPE);
 
@@ -161,7 +163,7 @@ class enrol_coupon_enrol_form extends moodleform {
             $mform->addElement('hidden', 'couponcode');
         }
 
-        $this->add_action_buttons(false, get_string('enrolme', 'enrol_coupon'));
+        $this->add_action_buttons(false, $buttontext);
 
 		//settings for important fields
  		$mform->setType('couponcode', PARAM_ALPHANUMEXT);

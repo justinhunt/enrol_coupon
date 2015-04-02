@@ -33,6 +33,8 @@ The following placeholders may be included in the message:
 
 * Course name {$a->coursename}
 * Link to user\'s profile page {$a->profileurl}';
+$string['custombuttontext'] = 'Custom button text';
+$string['custombuttontext_help'] = 'The text to show on the button to submit the coupon. If not specified will be "Enrol Me".';
 $string['defaultrole'] = 'Default role assignment';
 $string['defaultrole_desc'] = 'Select role which should be assigned to users during coupon enrolment';
 $string['enrolenddate'] = 'End date';
