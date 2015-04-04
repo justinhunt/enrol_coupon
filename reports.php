@@ -181,6 +181,6 @@ switch($format){
 		echo $renderer->header($instance, 'reports', null, get_string('reportstab', ENROL_COUPON_FRANKY));
 		echo $extraheader;
 		echo $reportrenderer->render_section_html($reportheading, $report->fetch_name(), $report->fetch_head(), $reportrows, $report->fetch_fields());
-		echo $reportrenderer->show_reports_footer($instance,$formdata,$showreport);
+		echo $reportrenderer->show_reports_footer($instance,$formdata,$showreport,$itemid);
 		echo $renderer->footer();
 }

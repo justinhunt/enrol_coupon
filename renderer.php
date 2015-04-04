@@ -234,10 +234,11 @@ class enrol_coupon_report_renderer extends plugin_renderer_base {
 		return $this->output->heading(get_string('nodataavailable',ENROL_COUPON_FRANKY),3);
 	}
 	
-	public function render_exportbuttons_html($instance,$formdata,$showreport){
+	public function render_exportbuttons_html($instance,$formdata,$showreport,$itemid){
 		//convert formdata to array
 		$formdata = (array) $formdata;
 		$formdata['id']=$instance->id;
+		$formdata['itemid']=$itemid;
 		$formdata['report']=$showreport;
 		
 		$formdata['format']='pdf';
@@ -344,11 +345,11 @@ class enrol_coupon_report_renderer extends plugin_renderer_base {
 		
 	}
 	
-	function show_reports_footer($instance, $formdata,$showreport){
+	function show_reports_footer($instance, $formdata,$showreport,$itemid){
 		// print's a popup link to your custom page
 		$link = new moodle_url('/enrol/coupon/reports.php',array('id'=>$instance->id));
 		$ret =  html_writer::link($link, get_string('returntoreports',ENROL_COUPON_FRANKY));
-		$ret .= $this->render_exportbuttons_html($instance,$formdata,$showreport);
+		$ret .= $this->render_exportbuttons_html($instance,$formdata,$showreport,$itemid);
 		return $ret;
 	}
 
