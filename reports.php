@@ -95,18 +95,18 @@ switch ($showreport){
 		echo $renderer->footer();
 		return;
 	
-	case 'bulkoverview':
-		$report = new enrol_coupon_bulkoverview_report($instance);
+	case 'bulkcoupon':
+		$report = new enrol_coupon_bulkcoupon_report($instance);
 		$formdata = new stdClass();
 		break;
 		
-	case 'alloverview':
-		$report = new enrol_coupon_alloverview_report($instance);
+	case 'allcoupon':
+		$report = new enrol_coupon_allcoupon_report($instance);
 		$formdata = new stdClass();
 		break;
 		
-	case 'setoverview':
-		$report = new enrol_coupon_setoverview_report($instance);
+	case 'setcoupon':
+		$report = new enrol_coupon_setcoupon_report($instance);
 		$formdata = new stdClass();
 		$formdata->typekey=$itemid;
 		break;

@@ -203,13 +203,13 @@ class enrol_coupon_report_renderer extends plugin_renderer_base {
 
 	public function render_reportmenu($instance) {
 		
-		$bulkoverview = new single_button(
-			new moodle_url('/enrol/coupon/reports.php',array('id'=>$instance->id, 'report'=>'bulkoverview')), 
-			get_string('bulkoverviewreport',ENROL_COUPON_FRANKY), 'get');
+		$bulkcoupon = new single_button(
+			new moodle_url('/enrol/coupon/reports.php',array('id'=>$instance->id, 'report'=>'bulkcoupon')), 
+			get_string('bulkcouponreport',ENROL_COUPON_FRANKY), 'get');
 			
-		$alloverview = new single_button(
-			new moodle_url('/enrol/coupon/reports.php',array('id'=>$instance->id, 'report'=>'alloverview')), 
-			get_string('alloverviewreport',ENROL_COUPON_FRANKY), 'get');
+		$allcoupon = new single_button(
+			new moodle_url('/enrol/coupon/reports.php',array('id'=>$instance->id, 'report'=>'allcoupon')), 
+			get_string('allcouponreport',ENROL_COUPON_FRANKY), 'get');
 			
 		$allusers = new single_button(
 			new moodle_url('/enrol/coupon/reports.php',array('id'=>$instance->id, 'report'=>'allusers')), 
@@ -221,7 +221,7 @@ class enrol_coupon_report_renderer extends plugin_renderer_base {
 			
 		$ret = html_writer::div( $this->render($allattempts) . $this->render($allusers) ,ENROL_COUPON_FRANKY . '_listbuttons');
 */		
-		$ret = html_writer::div($this->render($alloverview) .  $this->render($allusers) . $this->render($bulkoverview)  ,ENROL_COUPON_FRANKY . '_listbuttons');
+		$ret = html_writer::div($this->render($allcoupon) .  $this->render($allusers) . $this->render($bulkcoupon)  ,ENROL_COUPON_FRANKY . '_listbuttons');
 
 		return $ret;
 	}

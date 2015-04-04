@@ -135,12 +135,12 @@ abstract class enrol_coupon_base_report {
 *
 *
 */
-class enrol_coupon_setoverview_report extends  enrol_coupon_alloverview_report {
+class enrol_coupon_setcoupon_report extends  enrol_coupon_allcoupon_report {
 	
-	protected $report="setoverview";
+	protected $report="setcoupon";
 	
 	public function fetch_formatted_heading(){
-		return get_string('setoverviewreport',ENROL_COUPON_FRANKY);
+		return get_string('setcouponreport',ENROL_COUPON_FRANKY);
 	}
 	
 	protected function fetch_data_sql($formdata){
@@ -159,13 +159,13 @@ class enrol_coupon_setoverview_report extends  enrol_coupon_alloverview_report {
 }
 
 /*
-* enrol_coupon_alloverview_report 
+* enrol_coupon_allcoupon_report 
 *
 *
 */
-class enrol_coupon_alloverview_report extends  enrol_coupon_base_report {
+class enrol_coupon_allcoupon_report extends  enrol_coupon_base_report {
 	
-	protected $report="alloverview";
+	protected $report="allcoupon";
 	protected $fields = array('couponname','coupontype','couponcode','maxuses','usecount','datecreated');	
 	protected $headingdata = null;
 	protected $qcache=array();
@@ -194,13 +194,13 @@ class enrol_coupon_alloverview_report extends  enrol_coupon_base_report {
 							break;
 					}
 					break;
-				case 'couponcode':
-					if(property_exists($record,'couponcode')){
-						if($withlinks){
+				case 'usecount':
+					if(property_exists($record,'usecount')){
+						if($withlinks && $record->usecount > 0){
 							$link = new moodle_url('/enrol/coupon/reports.php',array('id'=>$this->instance->id, 'report'=>'coupondetails','itemid'=>$record->couponid ));
-							$ret =  html_writer::link($link, $record->couponcode);
+							$ret =  html_writer::link($link, $record->usecount);
 						}else{
-							$ret = $record->couponcode;
+							$ret = $record->usecount;
 						}
 					}else{
 						$ret = '';
@@ -208,7 +208,7 @@ class enrol_coupon_alloverview_report extends  enrol_coupon_base_report {
 					break;
 				case 'couponname':
 				case 'maxuses':
-				case 'usecount':
+				case 'couponcode':
 				default:
 					if(property_exists($record,$field)){
 						$ret=$record->{$field};
@@ -220,7 +220,7 @@ class enrol_coupon_alloverview_report extends  enrol_coupon_base_report {
 	}
 	
 	public function fetch_formatted_heading(){
-		return get_string('alloverviewreport',ENROL_COUPON_FRANKY);
+		return get_string('allcouponreport',ENROL_COUPON_FRANKY);
 	}
 	
 	protected function fetch_data_sql($formdata){
@@ -259,9 +259,9 @@ class enrol_coupon_alloverview_report extends  enrol_coupon_base_report {
 *
 *
 */
-class enrol_coupon_bulkoverview_report extends  enrol_coupon_base_report {
+class enrol_coupon_bulkcoupon_report extends  enrol_coupon_base_report {
 	
-	protected $report="bulkdetails";
+	protected $report="bulkcoupon";
 	protected $fields = array('couponname','coupontype','totalcoupons','totalseats','usedseats','datecreated');	
 	protected $headingdata = null;
 	protected $qcache=array();
@@ -293,7 +293,7 @@ class enrol_coupon_bulkoverview_report extends  enrol_coupon_base_report {
 				case 'couponname':
 					if(property_exists($record,'couponname')){
 						if($withlinks){
-							$link = new moodle_url('/enrol/coupon/reports.php',array('id'=>$this->instance->id, 'report'=>'setoverview','itemid'=>$record->typekey ));
+							$link = new moodle_url('/enrol/coupon/reports.php',array('id'=>$this->instance->id, 'report'=>'setcoupon','itemid'=>$record->typekey ));
 							$ret =  html_writer::link($link, $record->couponname);
 						}else{
 							$ret = $record->couponname;
@@ -304,11 +304,11 @@ class enrol_coupon_bulkoverview_report extends  enrol_coupon_base_report {
 					break;
 				
 				case 'usedseats':
-					if($withlinks){
+					if($withlinks && $record->usedseats !=0 ){
 						$link = new moodle_url('/enrol/coupon/reports.php',array('id'=>$this->instance->id, 'report'=>'setusers','itemid'=>$record->typekey ));
 						$ret =  html_writer::link($link, $ret=$record->{$field});	
 					}else{
-						$ret=$record->{$field};
+						$ret=$record->usedseats;
 					}
 					break;
 					
@@ -352,7 +352,7 @@ class enrol_coupon_bulkoverview_report extends  enrol_coupon_base_report {
 }
 
 /*
-* enrol_coupon_attempt_report 
+* enrol_coupon_coupondetails_report 
 *
 *
 */
