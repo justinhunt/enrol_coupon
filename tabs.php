@@ -44,7 +44,7 @@ if (!isset($course)) {
 $tabs = $row = $inactive = $activated = array();
 
 
-$row[] = new tabobject('preview', "$CFG->wwwroot/enrol/coupon/viewcoupons.php?id=$instance->id", get_string('viewcoupons', 'enrol_coupon'), get_string('viewcoupons', 'enrol_coupon'));
+$row[] = new tabobject('manage', "$CFG->wwwroot/enrol/coupon/viewcoupons.php?id=$instance->id", get_string('viewcoupons', 'enrol_coupon'), get_string('viewcoupons', 'enrol_coupon'));
 $row[] = new tabobject('reports', "$CFG->wwwroot/enrol/coupon/reports.php?id=$instance->id", get_string('reports', 'enrol_coupon'), get_string('viewreports', 'tquiz'));
 
 

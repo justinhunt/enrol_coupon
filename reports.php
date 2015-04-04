@@ -32,75 +32,54 @@ require_once(dirname(__FILE__).'/lib.php');
 require_once(dirname(__FILE__).'/reportclasses.php');
 
 
-$id = optional_param('id', 0, PARAM_INT); // course_module ID, or
-$n  = optional_param('n', 0, PARAM_INT);  // tquiz instance ID - it should be named as the first character of the module
+$id = optional_param('id', 0, PARAM_INT); // instance ID, or
 $format = optional_param('format', 'html', PARAM_TEXT); //export format csv or html
 $showreport = optional_param('report', 'menu', PARAM_TEXT); // report type
-$questionid = optional_param('questionid', 0, PARAM_INT); // report type
-$userid = optional_param('userid', 0, PARAM_INT); // report type
-$attemptid = optional_param('attemptid', 0, PARAM_INT); // report type
+$itemid = optional_param('itemid', 0, PARAM_INT); // itemid
+$userid = optional_param('userid', 0, PARAM_INT); //userid
+
 
 
 if ($id) {
-    $cm         = get_coursemodule_from_id('tquiz', $id, 0, false, MUST_EXIST);
-    $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-    $tquiz  = $DB->get_record('tquiz', array('id' => $cm->instance), '*', MUST_EXIST);
-} elseif ($n) {
-    $tquiz  = $DB->get_record('tquiz', array('id' => $n), '*', MUST_EXIST);
-    $course     = $DB->get_record('course', array('id' => $tquiz->course), '*', MUST_EXIST);
-    $cm         = get_coursemodule_from_instance('tquiz', $tquiz->id, $course->id, false, MUST_EXIST);
+    $instance = $DB->get_record('enrol', array('id' => $id), '*', MUST_EXIST);
+    $courseid=$instance->courseid;
+	$course = get_course($courseid);
+	$context = context_course::instance($courseid, MUST_EXIST);
 } else {
-    error('You must specify a course_module ID or an instance ID');
+    error('You must specify an instance ID');
 }
 
-require_login($course, true, $cm);
-$modulecontext = context_module::instance($cm->id);
-
-//Diverge logging logic at Moodle 2.7
-if($CFG->version<2014051200){
-	add_to_log($course->id, 'tquiz', 'reports', "reports.php?id={$cm->id}", $tquiz->name, $cm->id);
-}else{
-	// Trigger module viewed event.
-	$event = \mod_tquiz\event\course_module_viewed::create(array(
-	   'objectid' => $tquiz->id,
-	   'context' => $modulecontext
-	));
-	$event->add_record_snapshot('course_modules', $cm);
-	$event->add_record_snapshot('course', $course);
-	$event->add_record_snapshot('tquiz', $tquiz);
-	$event->trigger();
-} 
+require_login($course);
 
 
 /// Set up the page header
-$PAGE->set_url('/mod/tquiz/reports.php', array('id' => $cm->id));
-$PAGE->set_title(format_string($tquiz->name));
+$PAGE->set_url('/enrol/coupon/reports.php', array('id' => $instance->id));
+//$PAGE->set_title(format_string($tquiz->name));
 $PAGE->set_heading(format_string($course->fullname));
-$PAGE->set_context($modulecontext);
+$PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
-
-	//Get an admin settings 
-	$config = get_config('mod_tquiz');
 
 
 //get our javascript all ready to go
 //We can omit $jsmodule, but its nice to have it here, 
 //if for example we need to include some funky YUI stuff
+/*
 $jsmodule = array(
-	'name'     => 'mod_tquiz',
-	'fullpath' => '/mod/tquiz/module.js',
+	'name'     => 'enrol_coupon',
+	'fullpath' => '/enrol/coupon/module.js',
 	'requires' => array()
 );
 //here we set up any info we need to pass into javascript
 $opts =Array();
 
 //this inits the M.mod_tquiz thingy, after the page has loaded.
-$PAGE->requires->js_init_call('M.mod_tquiz.helper.init', array($opts),false,$jsmodule);
+$PAGE->requires->js_init_call('M.enrol_coupon.helper.init', array($opts),false,$jsmodule);
+*/
 
 
 //This puts all our display logic into the renderer.php files in this plugin
-$renderer = $PAGE->get_renderer('mod_tquiz');
-$reportrenderer = $PAGE->get_renderer('mod_tquiz','report');
+$renderer = $PAGE->get_renderer('enrol_coupon');
+$reportrenderer = $PAGE->get_renderer('enrol_coupon','report');
 
 //From here we actually display the page.
 //this is core renderer stuff
@@ -110,19 +89,34 @@ switch ($showreport){
 
 	//not a true report, separate implementation in renderer
 	case 'menu':
-		$questions = $DB->get_records('tquiz_questions',array('tquiz'=>$tquiz->id));
-		echo $renderer->header($tquiz, $cm, $mode, null, get_string('reports', 'tquiz'));
-		echo $reportrenderer->render_reportmenu($tquiz,$cm, $questions);
+		echo $renderer->header($instance, 'reports', null, get_string('reportstab', ENROL_COUPON_FRANKY));
+		echo $reportrenderer->render_reportmenu($instance);
 		// Finish the page
 		echo $renderer->footer();
 		return;
 	
-	case 'attemptlog':
-		$report = new mod_tquiz_attemptlog_report();
+	case 'bulkoverview':
+		$report = new enrol_coupon_bulkoverview_report($instance);
 		$formdata = new stdClass();
-		$formdata->attemptid=$attemptid;
 		break;
 		
+	case 'alloverview':
+		$report = new enrol_coupon_alloverview_report($instance);
+		$formdata = new stdClass();
+		break;
+		
+	case 'setoverview':
+		$report = new enrol_coupon_setoverview_report($instance);
+		$formdata = new stdClass();
+		$formdata->typekey=$itemid;
+		break;
+		
+	case 'coupondetails':
+		$report = new enrol_coupon_coupondetails_report($instance);
+		$formdata = new stdClass();
+		$formdata->couponid = $itemid;
+		break;
+/*		
 	case 'allattempts':
 		$report = new mod_tquiz_allattempts_report();
 		$formdata = new stdClass();
@@ -158,9 +152,9 @@ switch ($showreport){
 		$formdata->questionid=$questionid;
 		$formdata->attemptid=$attemptid;
 		break;
-		
+*/		
 	default:
-		echo $renderer->header($tquiz, $cm, $mode, null, get_string('reports', 'tquiz'));
+		echo $renderer->header($instance, 'reports', null, get_string('reportstab', ENROL_COUPON_FRANKY));
 		echo "unknown report type.";
 		echo $renderer->footer();
 		return;
@@ -184,9 +178,9 @@ switch($format){
 	default:
 		
 		$reportrows = $report->fetch_formatted_rows(true);
-		echo $renderer->header($tquiz, $cm, $mode, null, get_string('reports', 'tquiz'));
+		echo $renderer->header($instance, 'reports', null, get_string('reportstab', ENROL_COUPON_FRANKY));
 		echo $extraheader;
 		echo $reportrenderer->render_section_html($reportheading, $report->fetch_name(), $report->fetch_head(), $reportrows, $report->fetch_fields());
-		echo $reportrenderer->show_reports_footer($tquiz,$cm,$formdata,$showreport);
+		echo $reportrenderer->show_reports_footer($instance,$formdata,$showreport);
 		echo $renderer->footer();
 }

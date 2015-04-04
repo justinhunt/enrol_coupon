@@ -23,6 +23,7 @@
  */
 
 define('ENROL_COUPON_ENROLTYPE', 'coupon');
+define('ENROL_COUPON_FRANKY', 'enrol_coupon');
 define('ENROL_COUPON_TYPE_STANDARD', 1);
 define('ENROL_COUPON_TYPE_BULK', 2);
 define('ENROL_COUPON_TYPE_RANDOMBULK', 3);

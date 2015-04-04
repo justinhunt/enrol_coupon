@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TQuiz Report Classes.
+ * Coupon Report Classes.
  *
- * @package    mod_tquiz
+ * @package    enrol_coupon
  * @copyright  2014 Justin Hunt <poodllsupport@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -32,20 +32,25 @@ defined('MOODLE_INTERNAL') || die();
  * fetch_formatted_fields: uses data prepared in process_raw_data to make each field in fields full of formatted data
  * The allusers report is the simplest example 
  *
- * @package    mod_tquiz
- * @copyright  2014 Justin Hunt <poodllsupport@gmail.com>
+ * @package    enrol_coupon
+ * @copyright  2015 Justin Hunt <poodllsupport@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class mod_tquiz_base_report {
+abstract class enrol_coupon_base_report {
 
     protected $report="";
     protected $head=array();
 	protected $rawdata=null;
     protected $fields = array();
 	protected $dbcache=array();
+	protected $instance=null;
 	
 	abstract function process_raw_data($formdata);
 	abstract function fetch_formatted_heading();
+	
+	function enrol_coupon_base_report($instance){
+		$this->instance = $instance;
+	}
 	
 	public function fetch_fields(){
 		return $this->fields;
@@ -53,7 +58,7 @@ abstract class mod_tquiz_base_report {
 	public function fetch_head(){
 		$head=array();
 		foreach($this->fields as $field){
-			$head[]=get_string($field,'tquiz');
+			$head[]=get_string($field,ENROL_COUPON_FRANKY);
 		}
 		return $head;
 	}
@@ -119,15 +124,89 @@ abstract class mod_tquiz_base_report {
 		return $returndata;
 	}
 	
+
+	
+}
+
+/*
+* enrol_coupon_setoverview_report 
+*
+*
+*/
+class enrol_coupon_setoverview_report extends  enrol_coupon_alloverview_report {
+	
+	protected $report="setoverview";
+	
+	public function fetch_formatted_heading(){
+		return get_string('setoverviewreport',ENROL_COUPON_FRANKY);
+	}
+	
+	protected function fetch_data_sql($formdata){
+		$sql = 'SELECT c.id as couponid, c.couponcode , c.name as couponname,  c.maxuses, c.typekey, COUNT(u.id) as usecount,type as coupontype, timecreated as datecreated ';
+		$sql .= 'FROM {'.ENROL_COUPON_TABLE_COUPON.'} c ';
+		$sql .= 'LEFT OUTER JOIN {'.ENROL_COUPON_TABLE_USER . '} u ';
+		$sql .= 'ON c.id = u.couponid ';
+		$sql .= 'WHERE c.instanceid = '. $this->instance->id . ' ';
+		$sql .= 'AND c.typekey = '. $formdata->typekey . ' ';
+		$sql .= 'GROUP BY c.id ';
+		return $sql;
+	
+	}
+	
+	
+}
+
+/*
+* enrol_coupon_alloverview_report 
+*
+*
+*/
+class enrol_coupon_alloverview_report extends  enrol_coupon_base_report {
+	
+	protected $report="alloverview";
+	protected $fields = array('couponname','coupontype','couponcode','maxuses','usecount','datecreated');	
+	protected $headingdata = null;
+	protected $qcache=array();
+	protected $ucache=array();
+	
 	public function fetch_formatted_field($field,$record,$withlinks){
 				global $DB;
 			switch($field){
-				case 'timecreated':
-					$ret = date("Y-m-d H:i:s",$record->timecreated);
+				case 'datecreated':
+					$ret=date("Y-m-d",$record->datecreated);
 					break;
-				case 'userid':
-					$ret =fullname($DB->get_record('user',array('id'=>$record->userid)));
+				case 'coupontype':
+					switch($record->coupontype){
+						case ENROL_COUPON_TYPE_STANDARD:
+							//actuallystandard should not enter results here, just in case
+							$ret = get_string('standard',ENROL_COUPON_FRANKY);
+							break;
+						case ENROL_COUPON_TYPE_BULK:
+							$ret = get_string('bulk',ENROL_COUPON_FRANKY);
+							break;
+						case ENROL_COUPON_TYPE_RANDOMBULK:
+							$ret = get_string('randombulk',ENROL_COUPON_FRANKY);
+							break;
+						default:
+							$ret = get_string('unknown',ENROL_COUPON_FRANKY);
+							break;
+					}
 					break;
+				case 'couponcode':
+					if(property_exists($record,'couponcode')){
+						if($withlinks){
+							$link = new moodle_url('/enrol/coupon/reports.php',array('id'=>$this->instance->id, 'report'=>'coupondetails','itemid'=>$record->couponid ));
+							$ret =  html_writer::link($link, $record->couponcode);
+						}else{
+							$ret = $record->couponcode;
+						}
+					}else{
+						$ret = '';
+					}
+					break;
+				case 'couponname':
+				case 'maxuses':
+				case 'usecount':
 				default:
 					if(property_exists($record,$field)){
 						$ret=$record->{$field};
@@ -138,17 +217,50 @@ abstract class mod_tquiz_base_report {
 			return $ret;
 	}
 	
+	public function fetch_formatted_heading(){
+		return get_string('alloverviewreport',ENROL_COUPON_FRANKY);
+	}
+	
+	protected function fetch_data_sql($formdata){
+		$sql = 'SELECT c.id as couponid, c.couponcode , c.typekey, c.name as couponname,  c.maxuses, COUNT(u.id) as usecount,type as coupontype, timecreated as datecreated ';
+		$sql .= 'FROM {'.ENROL_COUPON_TABLE_COUPON.'} c ';
+		$sql .= 'LEFT OUTER JOIN {'.ENROL_COUPON_TABLE_USER . '} u ';
+		$sql .= 'ON c.id = u.couponid ';
+		$sql .= 'WHERE c.instanceid = '. $this->instance->id . ' ';
+		$sql .= 'GROUP BY c.id ';
+		
+		return $sql;
+	
+	}
+	
+	public function process_raw_data($formdata){
+		global $DB;
+		
+		$sql = $this->fetch_data_sql($formdata);
+		
+		
+		$coupons = $DB->get_records_sql($sql);
+		
+		if($coupons){
+			$this->rawdata= $coupons;
+		}else{
+			$this->rawdata= array();
+		}
+		return true;
+	}
+
 }
 
+
 /*
-* mod_tquiz_attempt_report 
+* enrol_coupon_attempt_report 
 *
 *
 */
-class mod_tquiz_attempt_report extends  mod_tquiz_base_report {
+class enrol_coupon_bulkoverview_report extends  enrol_coupon_base_report {
 	
-	protected $report="attempt";
-	protected $fields = array('qname','timetaken','qplaycount','aplaycount','correct');	
+	protected $report="bulkdetails";
+	protected $fields = array('couponname','coupontype','totalcoupons','totalseats','usedseats','datecreated');	
 	protected $headingdata = null;
 	protected $qcache=array();
 	protected $ucache=array();
@@ -156,63 +268,120 @@ class mod_tquiz_attempt_report extends  mod_tquiz_base_report {
 	public function fetch_formatted_field($field,$record,$withlinks){
 				global $DB;
 			switch($field){
-				case 'timetaken':
-					if(!property_exists($record,'selectanswertime') || !property_exists($record,'revealanswerstime')){
-						$ret="";
-					}else{
-						//$ret = $this->fetch_time_difference($record->revealanswerstime,$record->selectanswertime);
-						$ret = $this->fetch_time_difference_js($record->revealanswerstime_js,$record->selectanswertime_js);
+				case 'datecreated':
+					$ret=date("Y-m-d",$record->datecreated);
+					break;
+				case 'coupontype':
+					switch($record->coupontype){
+						case ENROL_COUPON_TYPE_STANDARD:
+							//actuallystandard should not enter results here, just in case
+							$ret = get_string('standard',ENROL_COUPON_FRANKY);
+							break;
+						case ENROL_COUPON_TYPE_BULK:
+							$ret = get_string('bulk',ENROL_COUPON_FRANKY);
+							break;
+						case ENROL_COUPON_TYPE_RANDOMBULK:
+							$ret = get_string('randombulk',ENROL_COUPON_FRANKY);
+							break;
+						default:
+							$ret = get_string('unknown',ENROL_COUPON_FRANKY);
+							break;
 					}
 					break;
-				case 'qname':
-					if($record->questionid==0){
-						$ret="Summary";
-					}else{
-						$thequestion = $this->fetch_cache('tquiz_questions',$record->questionid);
-						$ret = $thequestion->name;
-					}
-					break;
-				case 'qplaycount':
-					if($record->questionid==0){
-						$ret="";
-					}else{
-						$ret = $record->qplaycount;
-					}
-					break;
-				
-				case 'aplaycount':
-					if($record->questionid==0){
-						$ret="";
-					}else{
-						$attempt =  $this->fetch_cache('tquiz_attempt',$record->attemptid);
-						$question =  $this->fetch_cache('tquiz_questions',$record->questionid);
-						if($question->qtype==MOD_TQUIZ_QTYPE_AUDIOCHOICE){
-							$ret = $record->aplaycount;
-							if($withlinks){
-								$responsedetailsurl = new moodle_url('/mod/tquiz/reports.php', 
-									array('n'=>$attempt->tquizid,
-									'report'=>'responsedetails',
-									'attemptid'=>$record->attemptid,
-									'questionid'=>$record->questionid));
-								$ret = html_writer::link($responsedetailsurl,$ret);
-							}
+				case 'couponname':
+					if(property_exists($record,'couponname')){
+						if($withlinks){
+							$link = new moodle_url('/enrol/coupon/reports.php',array('id'=>$this->instance->id, 'report'=>'setoverview','itemid'=>$record->typekey ));
+							$ret =  html_writer::link($link, $record->couponname);
 						}else{
-							$ret="";
+							$ret = $record->couponname;
 						}
+					}else{
+						$ret = '';
 					}
 					break;
-				
-				case 'correct':
-					if($record->questionid==0){
-						$ret="";
+				case 'totalcoupons':
+				case 'totalseats':
+				case 'usedseats':
+				default:
+					if(property_exists($record,$field)){
+						$ret=$record->{$field};
 					}else{
-						$thequestion = $this->fetch_cache('tquiz_questions',$record->questionid);
-						$correctanswer = $thequestion->correctanswer;
+						$ret = '';
+					}
+			}
+			return $ret;
+	}
+	
+	public function fetch_formatted_heading(){
+		return get_string('allbulkcouponreport',ENROL_COUPON_FRANKY);
+	}
+	
+	public function process_raw_data($formdata){
+		global $DB;
+		
+		$sql = 'SELECT c.name as couponname, count(c.id) as totalcoupons, c.typekey as typekey, sum(maxuses) as totalseats, COUNT(u.id) as usedseats,type as coupontype, timecreated as datecreated ';
+		$sql .= 'FROM {'.ENROL_COUPON_TABLE_COUPON.'} c ';
+		$sql .= 'LEFT OUTER JOIN {'.ENROL_COUPON_TABLE_USER . '} u ';
+		$sql .= 'ON c.id = u.couponid ';
+		$sql .= 'WHERE c.instanceid = '. $this->instance->id . ' ';
+		$sql .= 'AND c.type IN (' . ENROL_COUPON_TYPE_BULK . ',' . ENROL_COUPON_TYPE_RANDOMBULK .') ';
+		$sql .= 'GROUP BY c.typekey ';
+		
+		$bulkcoupons = $DB->get_records_sql($sql);
+		
+		if($bulkcoupons){
+			$this->rawdata= $bulkcoupons;
+		}else{
+			$this->rawdata= array();
+		}
+		return true;
+	}
 
-						if($record->selectanswer==$correctanswer){
-							$ret =get_string('yes');
-						}else{
-							$ret=get_string('no');
+}
+
+/*
+* enrol_coupon_attempt_report 
+*
+*
+*/
+class enrol_coupon_coupondetails_report extends  enrol_coupon_base_report {
+	
+	protected $report="coupondetails";
+	protected $fields = array('coupontype','user','dateredeemed');	
+	protected $headingdata = null;
+	protected $qcache=array();
+	protected $ucache=array();
+	
+	public function fetch_formatted_field($field,$record,$withlinks){
+				global $DB;
+			switch($field){
+				case 'dateredeemed':
+					$ret=date("Y-m-d",$record->dateredeemed);
+					break;
+				case 'coupontype':
+					switch($record->coupontype){
+						case ENROL_COUPON_TYPE_STANDARD:
+							//actuallystandard should not enter results here, just in case
+							$ret = get_string('standard',ENROL_COUPON_FRANKY);
+							break;
+						case ENROL_COUPON_TYPE_BULK:
+							$ret = get_string('bulk',ENROL_COUPON_FRANKY);
+							break;
+						case ENROL_COUPON_TYPE_RANDOMBULK:
+							$ret = get_string('randombulk',ENROL_COUPON_FRANKY);
+							break;
+						default:
+							$ret = get_string('unknown',ENROL_COUPON_FRANKY);
+							break;
+					}
+					break;
+				case 'user':
+					$ret = '';
+					if(property_exists($record,'user') && $record->user ){
+						$user = $DB->get_record('user',array('id'=>$record->user ));
+						if($user){
+							$ret=fullname($user);
 						}
 					}
 					break;
@@ -227,114 +396,56 @@ class mod_tquiz_attempt_report extends  mod_tquiz_base_report {
 	}
 	
 	public function fetch_formatted_heading(){
-		$record = $this->headingdata;
-		$ret='';
-		if(!$record){return $ret;}
-		
-		if($record->questionid==0){
-			$user = $this->fetch_cache('user',$record->userid);
-			$attempt = $this->fetch_cache('tquiz_attempt',$record->attemptid);
-			$tquiz = $this->fetch_cache('tquiz',$attempt->tquizid);
-			$a = new stdClass();
-			$a->tquizname = $tquiz->name;
-			$a->username = fullname($user);
-			$a->status = $attempt->status;
-			$a->attemptdate = date("Y-m-d H:i:s",$attempt->timecreated);
-			$ret = get_string('attemptheader','tquiz',$a);
-		}
-		return $ret;
+		return get_string('coupondetailsreport',ENROL_COUPON_FRANKY, $this->headingdata);
 	}
 	
 	public function process_raw_data($formdata){
 		global $DB;
-		$alldata = $DB->get_records('tquiz_attempt_log',array('userid'=>$formdata->userid,'attemptid'=>$formdata->attemptid),'questionid, timecreated'); 
-		$questiondata = array();
-		$currentq=-1;
-		$thequestion = null;
-		foreach($alldata as $adata){
-
 		
-		//if we have changed question
-			//stash the last one and start building the next one
-			if($adata->questionid!=$currentq){
-					//stash the previous q if we had one
-					if($thequestion){$questiondata[]=$thequestion;}
-					
-					//this indicates the heading field
-					if($adata->questionid==0){
-						$this->headingdata = new stdClass();
-						$this->headingdata->questionid=$adata->questionid;
-						$this->headingdata->attemptid=$adata->attemptid;
-						$this->headingdata->userid=$adata->userid;
-						continue;					
-					}
-					
-					//init new row/question data object
-					$thequestion = new stdClass();
-					$thequestion->questionid=$adata->questionid;
-					$thequestion->attemptid=$adata->attemptid;
-					$thequestion->userid=$adata->userid;
-					$thequestion->qplaycount=0;
-					$thequestion->aplaycount=0;
-					$thequestion->revealanswerstime=false;
-					$thequestion->revealanswerstime_js=false;
-					$thequestion->startplayquestiontime=false;
-					$thequestion->startplayquestiontime_js=false;
-					$thequestion->endplayquestiontime=false;
-					$thequestion->endplayquestiontime_js=false;
-					$thequestion->selectanswer=false;
-					$thequestion->selectanswertime=false;
-					$thequestion->selectanswertime_js=false;
-					
-					$currentq = $adata->questionid;
-					//for now we disregard the 0 question events
-					if($adata->questionid==0){continue;}
+		$sql = 'SELECT c.couponcode as couponcode, c.name as couponname, maxuses as totalseats,type as coupontype, timecreated as datecreated, u.userid as user, u.usedate as dateredeemed ';
+		$sql .= 'FROM {'.ENROL_COUPON_TABLE_COUPON.'} c ';
+		$sql .= 'LEFT OUTER JOIN {'.ENROL_COUPON_TABLE_USER . '} u ';
+		$sql .= 'ON c.id = u.couponid ';
+		$sql .= 'WHERE c.instanceid = '. $this->instance->id . ' ';
+		$sql .= 'AND c.id = '. $formdata->couponid . ' ';	
+		$bulkcoupons = $DB->get_records_sql($sql);
+		
+		//set headingdata
+		$this->headingdata = new stdClass();
+		$this->headingdata->usecount=0;
+		$this->headingdata->couponcode=0;
+		$commondata=false;
+		foreach($bulkcoupons as $coupon){
+			if(!$commondata){
+				$this->headingdata->couponname = $coupon->couponname;
+				$this->headingdata->couponcode = $coupon->couponcode;
+				$this->headingdata->totalseats = $coupon->totalseats;
+				$this->headingdata->coupontype = $coupon->coupontype;
+				$commondata=true;
 			}
-				
-			switch ($adata->eventkey){
-				case 'startplayquestion':
-					$thequestion->{$adata->eventkey . 'time'}=$adata->timecreated;
-					$thequestion->{$adata->eventkey . 'time_js'}=$adata->eventtime;
-					$thequestion->qplaycount++;
-					break;
-				case 'startplayanswer':
-					$thequestion->aplaycount++;
-					break;
-				case 'endplayquestion':
-				case 'revealanswers':
-					$thequestion->{$adata->eventkey . 'time'}=$adata->timecreated;
-					$thequestion->{$adata->eventkey . 'time_js'}=$adata->eventtime;
-					break;
-				case 'selectanswer':
-					$thequestion->{$adata->eventkey . 'time'}=$adata->timecreated;
-					$thequestion->{$adata->eventkey . 'time_js'}=$adata->eventtime;
-					$thequestion->{$adata->eventkey}=$adata->eventvalue;
-					break;
-				default:
-					$thequestion->{$adata->eventkey}=$adata->eventvalue;
-					break;
-			}//end of switch
-		}//end of for each
-		//stash the final parsed question
-		if($thequestion){
-			$questiondata[]=$thequestion;
+			if($coupon->user){
+				$this->headingdata->usecount =  $this->headingdata->usecount + 1;
+			}
 		}
 		
-		//At this point we have an event object per question from the log to process.
-		//eg timetaken = $question->selectanswer - $question->endplayquestion;
-		//need to make final and start "questions" have different ids (0 and 9999)
-		$this->rawdata= $questiondata;
+		//if we have no user data, just set empty array, so we show a nice message to user
+		if($this->headingdata->usecount <1){
+			$this->rawdata= array();
+		}else{
+			$this->rawdata= $bulkcoupons;
+		}
 		return true;
 	}
-
+	
 }
 
 /*
-* mod_tquiz_attempt_report 
+* enrol_coupon_attempt_report 
 *
 *
 */
-class mod_tquiz_questiondetails_report extends  mod_tquiz_base_report {
+/*
+class enrol_coupon_questiondetails_report extends  enrol_coupon_base_report {
 	
 	protected $report="questiondetails";
 	protected $fields = array('username','timetaken','qplaycount','correct');	
@@ -474,14 +585,15 @@ class mod_tquiz_questiondetails_report extends  mod_tquiz_base_report {
 	}
 
 }
+*/
 
 /*
-* mod_tquiz_allusers_report 
+* enrol_coupon_allusers_report 
 *
 *
 */
-
-class mod_tquiz_allusers_report extends  mod_tquiz_base_report {
+/*
+class enrol_coupon_allusers_report extends  enrol_coupon_base_report {
 	
 	protected $report="allusers";
 	protected $fields = array('date','username','timetaken','score');	
@@ -547,14 +659,14 @@ class mod_tquiz_allusers_report extends  mod_tquiz_base_report {
 	}
 
 }
-
+*/
 /*
-* mod_tquiz_allusers_report 
+* enrol_coupon_allusers_report 
 *
 *
 */
-
-class mod_tquiz_allattempts_report extends  mod_tquiz_base_report {
+/*
+class enrol_coupon_allattempts_report extends  enrol_coupon_base_report {
 	
 	protected $report="allattempts";
 	protected $fields = array('starttime', 'username','status','details','logs','delete');
@@ -648,14 +760,14 @@ class mod_tquiz_allattempts_report extends  mod_tquiz_base_report {
 	}
 
 }
-
+*/
 /*
-* mod_tquiz_allusers_report 
+* enrol_coupon_allusers_report 
 *
 *
 */
-
-class mod_tquiz_attemptlog_report extends  mod_tquiz_base_report {
+/*
+class enrol_coupon_attemptlog_report extends  enrol_coupon_base_report {
 	
 	protected $report="attemptlog";
 	protected $fields = array('qname','eventkey','eventvalue','eventtime');
@@ -729,14 +841,15 @@ class mod_tquiz_attemptlog_report extends  mod_tquiz_base_report {
 	}
 
 }
-
+*/
 
 /*
-* mod_tquiz_attempt_report 
+* enrol_coupon_attempt_report 
 *
 *
 */
-class mod_tquiz_responsedetails_report extends  mod_tquiz_base_report {
+/*
+class enrol_coupon_responsedetails_report extends  enrol_coupon_base_report {
 	
 	protected $report="responsedetails";
 	protected $fields = array('responsenumber','rplaycount');	
@@ -832,3 +945,4 @@ class mod_tquiz_responsedetails_report extends  mod_tquiz_base_report {
 	}
 
 }
+*/

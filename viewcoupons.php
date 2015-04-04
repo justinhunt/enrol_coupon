@@ -51,7 +51,7 @@ $PAGE->set_heading($course->fullname);
 
 $renderer = $PAGE->get_renderer('enrol_coupon');
 $PAGE->navbar->add(get_string('view'));
-echo $renderer->header($instance);
+echo $renderer->header($instance, 'manage', null, get_string('managetab', ENROL_COUPON_FRANKY));
 
 /*
     // There are no questions; give teacher some options

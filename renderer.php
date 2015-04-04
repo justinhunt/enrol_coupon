@@ -38,7 +38,7 @@ class enrol_coupon_renderer extends plugin_renderer_base {
      * @param string $extrapagetitle String to append to the page title.
      * @return string
      */
-    public function header($instance, $currenttab = '', $couponid = null, $extrapagetitle = null) {
+    public function header($instance, $currenttab = '', $itemid = null, $extrapagetitle = null) {
         global $CFG;
 
         $activityname = $instance->name;
@@ -120,7 +120,7 @@ class enrol_coupon_renderer extends plugin_renderer_base {
 		}
 	
 		$table = new html_table();
-		$table->id = 'enrol_coupon_cpanel';
+		$table->id = ENROL_COUPON_FRANKY . '_cpanel';
 		$table->head = array(
 			get_string('couponname', 'enrol_coupon'),
 			get_string('coupontype', 'enrol_coupon'),
@@ -144,11 +144,19 @@ class enrol_coupon_renderer extends plugin_renderer_base {
 			$couponnamecell = new html_table_cell($coupon->name);	
 			switch($coupon->type){
 				case ENROL_COUPON_TYPE_STANDARD:
-				default:
-					$coupontype = get_string('standard','enrol_coupon');
+					//actuallystandard should not enter results here, just in case
+					$coupontype = get_string('standard',ENROL_COUPON_FRANKY);
 					break;
-				
-			} 
+				case ENROL_COUPON_TYPE_BULK:
+					$coupontype = get_string('bulk',ENROL_COUPON_FRANKY);
+					break;
+				case ENROL_COUPON_TYPE_RANDOMBULK:
+					$coupontype = get_string('randombulk',ENROL_COUPON_FRANKY);
+					break;
+				default:
+					$coupontype = get_string('unknown',ENROL_COUPON_FRANKY);
+					break;
+			}
 			$coupontypecell = new html_table_cell($coupontype);
 			
 			$couponcodecell = new html_table_cell($coupon->couponcode);
@@ -159,16 +167,17 @@ class enrol_coupon_renderer extends plugin_renderer_base {
 			$editurl = new moodle_url($actionurl, array('id'=>$instance->id,'couponid'=>$coupon->id));
 			$editlink = html_writer::link($editurl, get_string('editcoupon', 'enrol_coupon'));
 			$editcell = new html_table_cell($editlink);
-			
-			$viewlink = $this->fetch_view_link($coupon->id,$instance->id);
-			$viewcell = new html_table_cell($viewlink);
+
+			$reporturl = new moodle_url('/enrol/coupon/reports.php',array('itemid'=>$coupon->id, 'id'=>$instance->id, 'report'=>'coupondetails'));
+			$reportlink = html_writer::link($reporturl, get_string('details', 'enrol_coupon'));
+			$reportcell = new html_table_cell($reportlink);
 		
 			$deleteurl = new moodle_url($actionurl, array('id'=>$instance->id,'couponid'=>$coupon->id,'action'=>'confirmdelete'));
 			$deletelink = html_writer::link($deleteurl, get_string('deletecoupon', 'enrol_coupon'));
 			$deletecell = new html_table_cell($deletelink);
 
 			$row->cells = array(
-				$couponnamecell, $coupontypecell, $couponcodecell, $maxusescell,$viewcell, $editcell, $deletecell
+				$couponnamecell, $coupontypecell, $couponcodecell, $maxusescell,$reportcell, $editcell, $deletecell
 			);
 			$table->data[] = $row;
 		}
@@ -177,25 +186,7 @@ class enrol_coupon_renderer extends plugin_renderer_base {
 
 	}
 
-	
-	
-	function fetch_view_link($couponid, $instanceid){
-		// print's a popup link to your custom page
-		$link = new moodle_url('/enrol/coupon/reports.php',array('couponid'=>$couponid, 'id'=>$instanceid));
-		return  $this->output->action_link($link, get_string('reports','enrol_coupon'), 
-			new popup_action('click', $link));
-	
-	}
-	
-	
-	/*
-	
-	public function fetch_question_div($question, $tquiz,$modulecontext){
-			$q = $this->fetch_question_display($question, $tquiz,$modulecontext);
-			$q .= $this->fetch_answers_display($question, $tquiz,$modulecontext);
-			return html_writer::tag('div', $q, array('class'=>'enrol_coupon_qdiv','id'=>'tquiz_qdiv_' . $question->id));
-	}
-	*/
+
 
 }
 
@@ -210,35 +201,23 @@ class enrol_coupon_renderer extends plugin_renderer_base {
 class enrol_coupon_report_renderer extends plugin_renderer_base {
 
 
-	public function render_reportmenu($tquiz,$cm, $coupons) {
+	public function render_reportmenu($instance) {
 		
-		$allattempts = new single_button(
-			new moodle_url('/enrol/coupon/reports.php',array('id'=>$cm->id, 'n'=>$tquiz->id, 'report'=>'allattempts')), 
-			get_string('attemptsmanager','tquiz'), 'get');
-		/*
-		$allsummary = new single_button(
-			new moodle_url('/enrol/coupon/reports.php',array('id'=>$cm->id, 'n'=>$tquiz->id, 'report'=>'summary')), 
-			get_string('allsummary','tquiz'), 'get');
-		*/
+		$bulkoverview = new single_button(
+			new moodle_url('/enrol/coupon/reports.php',array('id'=>$instance->id, 'report'=>'bulkoverview')), 
+			get_string('bulkoverviewreport',ENROL_COUPON_FRANKY), 'get');
+			
+		$alloverview = new single_button(
+			new moodle_url('/enrol/coupon/reports.php',array('id'=>$instance->id, 'report'=>'alloverview')), 
+			get_string('alloverviewreport',ENROL_COUPON_FRANKY), 'get');
+/*
 		$allusers = new single_button(
 			new moodle_url('/enrol/coupon/reports.php',array('id'=>$cm->id, 'n'=>$tquiz->id, 'report'=>'allusers')), 
 			get_string('allusers','tquiz'), 'get');
 			
-		$ret = html_writer::div( $this->render($allattempts) . $this->render($allusers) ,'enrol_coupon_listbuttons');
-		
-		foreach($coupons as $coupon){	
-			$qdetails = new single_button(
-				new moodle_url('/enrol/coupon/reports.php',array('id'=>$cm->id, 'n'=>$tquiz->id, 'report'=>'questiondetails', 'questionid'=>$coupon->id)), 
-				get_string('questiondetails','tquiz', $coupon->name), 'get');
-			/*
-			$qsummary= new single_button(
-				new moodle_url('/enrol/coupon/reports.php',array('id'=>$cm->id, 'n'=>$tquiz->id, 'report'=>'questionsummary', 'questionid'=>$coupon->id)), 
-				get_string('questionsummary','tquiz', $coupon->name), 'get');
-				
-			$ret .= html_writer::div( $this->render($qsummary) . $this->render($qdetails),'enrol_coupon_listbuttons');
-			*/
-			$ret .= html_writer::div( $this->render($qdetails),'enrol_coupon_listbuttons');
-		}
+		$ret = html_writer::div( $this->render($allattempts) . $this->render($allusers) ,ENROL_COUPON_FRANKY . '_listbuttons');
+*/		
+		$ret = html_writer::div($this->render($alloverview) . $this->render($bulkoverview)  ,ENROL_COUPON_FRANKY . '_listbuttons');
 
 		return $ret;
 	}
@@ -246,45 +225,45 @@ class enrol_coupon_report_renderer extends plugin_renderer_base {
 
 	public function render_reporttitle_html($course,$username) {
 		$ret = $this->output->heading(format_string($course->fullname),2);
-		$ret .= $this->output->heading(get_string('reporttitle','tquiz',$username),3);
+		$ret .= $this->output->heading(get_string('reporttitle',ENROL_COUPON_FRANKY,$username),3);
 		return $ret;
 	}
 
 	public function render_empty_section_html($sectiontitle) {
 		global $CFG;
-		return $this->output->heading(get_string('nodataavailable','tquiz'),3);
+		return $this->output->heading(get_string('nodataavailable',ENROL_COUPON_FRANKY),3);
 	}
 	
-	public function render_exportbuttons_html($cm,$formdata,$showreport){
+	public function render_exportbuttons_html($instance,$formdata,$showreport){
 		//convert formdata to array
 		$formdata = (array) $formdata;
-		$formdata['id']=$cm->id;
+		$formdata['id']=$instance->id;
 		$formdata['report']=$showreport;
 		
 		$formdata['format']='pdf';
 		$pdf = new single_button(
 			new moodle_url('/enrol/coupon/reports.php',$formdata),
-			get_string('exportpdf','tquiz'), 'get');
+			get_string('exportpdf',ENROL_COUPON_FRANKY), 'get');
 		
 		$formdata['format']='csv';
 		$excel = new single_button(
 			new moodle_url('/enrol/coupon/reports.php',$formdata), 
-			get_string('exportexcel','tquiz'), 'get');
+			get_string('exportexcel',ENROL_COUPON_FRANKY), 'get');
 
-		//return html_writer::div( $this->render($pdf) . $this->render($excel),'enrol_coupon_actionbuttons');
-		return html_writer::div( $this->render($excel),'enrol_coupon_actionbuttons');
+		//return html_writer::div( $this->render($pdf) . $this->render($excel),ENROL_COUPON_FRANKY . '_actionbuttons');
+		return html_writer::div( $this->render($excel),ENROL_COUPON_FRANKY . '_actionbuttons');
 	}
 	
 	public function render_continuebuttons_html($course){
 		$backtocourse = new single_button(
 			new moodle_url('/course/view.php',array('id'=>$course->id)), 
-			get_string('backtocourse','tquiz'), 'get');
+			get_string('backtocourse',ENROL_COUPON_FRANKY), 'get');
 		
 		$selectanother = new single_button(
 			new moodle_url('/enrol/coupon/index.php',array('id'=>$course->id)), 
-			get_string('selectanother','tquiz'), 'get');
+			get_string('selectanother',ENROL_COUPON_FRANKY), 'get');
 			
-		return html_writer::div($this->render($backtocourse) . $this->render($selectanother),'tquiz_listbuttons');
+		return html_writer::div($this->render($backtocourse) . $this->render($selectanother),ENROL_COUPON_FRANKY . '_listbuttons');
 	}
 	
 	public function render_section_csv($sectiontitle, $report, $head, $rows, $fields) {
@@ -317,15 +296,15 @@ class enrol_coupon_report_renderer extends plugin_renderer_base {
         exit();
         break;
 	}
-
+/*
 	public function render_delete_allattempts($cm){
 		$deleteallbutton = new single_button(
 				new moodle_url('/enrol/coupon/manageattempts.php',array('id'=>$cm->id,'action'=>'confirmdeleteall')), 
 				get_string('deleteallattempts','tquiz'), 'get');
-		$ret =  html_writer::div( $this->render($deleteallbutton) ,'enrol_coupon_actionbuttons');
+		$ret =  html_writer::div( $this->render($deleteallbutton) ,ENROL_COUPON_FRANKY . '_actionbuttons');
 		return $ret;
 	}
-	
+*/	
 	public function render_section_html($sectiontitle, $report, $head, $rows, $fields) {
 		global $CFG;
 		if(empty($rows)){
@@ -333,8 +312,8 @@ class enrol_coupon_report_renderer extends plugin_renderer_base {
 		}
 		
 		//set up our table and head attributes
-		$tableattributes = array('class'=>'generaltable tquiz_table');
-		$headrow_attributes = array('class'=>'tquiz_headrow');
+		$tableattributes = array('class'=>'generaltable ' . ENROL_COUPON_FRANKY . '_table');
+		$headrow_attributes = array('class'=> ENROL_COUPON_FRANKY . '_headrow');
 		
 		$htmltable = new html_table();
 		$htmltable->attributes = $tableattributes;
@@ -365,14 +344,12 @@ class enrol_coupon_report_renderer extends plugin_renderer_base {
 		
 	}
 	
-	function show_reports_footer($tquiz,$cm, $formdata,$showreport){
+	function show_reports_footer($instance, $formdata,$showreport){
 		// print's a popup link to your custom page
-		$link = new moodle_url('/enrol/coupon/reports.php',array('id'=>$cm->id, 'n'=>$tquiz->id));
-		$ret =  html_writer::link($link, get_string('returntoreports','enrol_coupon'));
-		$ret .= $this->render_exportbuttons_html($cm,$formdata,$showreport);
+		$link = new moodle_url('/enrol/coupon/reports.php',array('id'=>$instance->id));
+		$ret =  html_writer::link($link, get_string('returntoreports',ENROL_COUPON_FRANKY));
+		$ret .= $this->render_exportbuttons_html($instance,$formdata,$showreport);
 		return $ret;
 	}
 
 }
-
-

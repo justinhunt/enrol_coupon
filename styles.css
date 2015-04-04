@@ -1,0 +1,16 @@
+
+
+div.enrol_coupon_listbuttons {
+	display: block;
+	/*float: left;*/
+}
+.enrol_coupon_listbuttons input[type="submit"]{
+	width: 400px;
+	/*float: left;*/
+}
+
+div.enrol_coupon_actionbuttons {
+	display: flex;
+	float: right;
+}
+
