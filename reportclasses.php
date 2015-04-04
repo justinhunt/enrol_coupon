@@ -128,6 +128,8 @@ abstract class enrol_coupon_base_report {
 	
 }
 
+
+
 /*
 * enrol_coupon_setoverview_report 
 *
@@ -300,9 +302,18 @@ class enrol_coupon_bulkoverview_report extends  enrol_coupon_base_report {
 						$ret = '';
 					}
 					break;
+				
+				case 'usedseats':
+					if($withlinks){
+						$link = new moodle_url('/enrol/coupon/reports.php',array('id'=>$this->instance->id, 'report'=>'setusers','itemid'=>$record->typekey ));
+						$ret =  html_writer::link($link, $ret=$record->{$field});	
+					}else{
+						$ret=$record->{$field};
+					}
+					break;
+					
 				case 'totalcoupons':
 				case 'totalseats':
-				case 'usedseats':
 				default:
 					if(property_exists($record,$field)){
 						$ret=$record->{$field};
@@ -438,6 +449,124 @@ class enrol_coupon_coupondetails_report extends  enrol_coupon_base_report {
 	}
 	
 }
+
+/*
+* enrol_coupon_setusers_report 
+*
+*
+*/
+class enrol_coupon_setusers_report extends  enrol_coupon_allusers_report {
+	protected $report="setusers";
+	public function fetch_formatted_heading(){
+		return get_string('setusersreport',ENROL_COUPON_FRANKY, $this->headingdata);
+	}
+	
+	protected function fetch_data_sql($formdata){
+		$sql = 'SELECT c.couponcode as couponcode, c.name as couponname,type as coupontype, u.userid as user, u.usedate as dateredeemed ';
+		$sql .= 'FROM {'.ENROL_COUPON_TABLE_USER.'} u ';
+		$sql .= 'INNER JOIN {'.ENROL_COUPON_TABLE_COUPON . '} c ';
+		$sql .= 'ON c.id = u.couponid ';
+		$sql .= 'WHERE c.instanceid = '. $this->instance->id . ' ';
+		$sql .= 'AND c.typekey = '. $formdata->typekey . ' ';
+		return $sql;
+	
+	}
+
+
+}
+
+/*
+* enrol_coupon_allusers_report 
+*
+*
+*/
+class enrol_coupon_allusers_report extends  enrol_coupon_base_report {
+	
+	protected $report="allusers";
+	protected $fields = array('couponcode','user','coupontype','dateredeemed');	
+	protected $headingdata = null;
+	protected $qcache=array();
+	protected $ucache=array();
+	
+	public function fetch_formatted_field($field,$record,$withlinks){
+			global $DB;
+			switch($field){
+				case 'dateredeemed':
+					$ret=date("Y-m-d",$record->dateredeemed);
+					break;
+				case 'coupontype':
+					switch($record->coupontype){
+						case ENROL_COUPON_TYPE_STANDARD:
+							//actuallystandard should not enter results here, just in case
+							$ret = get_string('standard',ENROL_COUPON_FRANKY);
+							break;
+						case ENROL_COUPON_TYPE_BULK:
+							$ret = get_string('bulk',ENROL_COUPON_FRANKY);
+							break;
+						case ENROL_COUPON_TYPE_RANDOMBULK:
+							$ret = get_string('randombulk',ENROL_COUPON_FRANKY);
+							break;
+						default:
+							$ret = get_string('unknown',ENROL_COUPON_FRANKY);
+							break;
+					}
+					break;
+				case 'user':
+					$ret = '';
+					if(property_exists($record,'user') && $record->user ){
+						$user = $DB->get_record('user',array('id'=>$record->user ));
+						if($user){
+							$ret=fullname($user);
+						}
+					}
+					break;
+				case 'couponcode':
+					$ret = $record->couponcode;
+					break;
+				default:
+					if(property_exists($record,$field)){
+						$ret=$record->{$field};
+					}else{
+						$ret = '';
+					}
+			}
+			return $ret;
+	}
+	
+	public function fetch_formatted_heading(){
+		return get_string('allusersreport',ENROL_COUPON_FRANKY, $this->headingdata);
+	}
+	
+	protected function fetch_data_sql($formdata){
+		$sql = 'SELECT c.couponcode as couponcode, c.name as couponname,type as coupontype, u.userid as user, u.usedate as dateredeemed ';
+		$sql .= 'FROM {'.ENROL_COUPON_TABLE_USER.'} u ';
+		$sql .= 'INNER JOIN {'.ENROL_COUPON_TABLE_COUPON . '} c ';
+		$sql .= 'ON c.id = u.couponid ';
+		$sql .= 'WHERE c.instanceid = '. $this->instance->id . ' ';
+		return $sql;
+	
+	}
+	
+	public function process_raw_data($formdata){
+		global $DB;
+		
+		$sql = $this->fetch_data_sql($formdata);
+		$coupons = $DB->get_records_sql($sql);
+		
+		//set headingdata
+		$this->headingdata = new stdClass();
+
+		//if we have no user data, just set empty array, so we show a nice message to user
+		if(!$coupons){
+			$this->rawdata= array();
+		}else{
+			$this->rawdata= $coupons;
+		}
+		return true;
+	}
+	
+}
+
 
 /*
 * enrol_coupon_attempt_report 

@@ -210,6 +210,10 @@ class enrol_coupon_report_renderer extends plugin_renderer_base {
 		$alloverview = new single_button(
 			new moodle_url('/enrol/coupon/reports.php',array('id'=>$instance->id, 'report'=>'alloverview')), 
 			get_string('alloverviewreport',ENROL_COUPON_FRANKY), 'get');
+			
+		$allusers = new single_button(
+			new moodle_url('/enrol/coupon/reports.php',array('id'=>$instance->id, 'report'=>'allusers')), 
+			get_string('allusersreport',ENROL_COUPON_FRANKY), 'get');
 /*
 		$allusers = new single_button(
 			new moodle_url('/enrol/coupon/reports.php',array('id'=>$cm->id, 'n'=>$tquiz->id, 'report'=>'allusers')), 
@@ -217,7 +221,7 @@ class enrol_coupon_report_renderer extends plugin_renderer_base {
 			
 		$ret = html_writer::div( $this->render($allattempts) . $this->render($allusers) ,ENROL_COUPON_FRANKY . '_listbuttons');
 */		
-		$ret = html_writer::div($this->render($alloverview) . $this->render($bulkoverview)  ,ENROL_COUPON_FRANKY . '_listbuttons');
+		$ret = html_writer::div($this->render($alloverview) .  $this->render($allusers) . $this->render($bulkoverview)  ,ENROL_COUPON_FRANKY . '_listbuttons');
 
 		return $ret;
 	}

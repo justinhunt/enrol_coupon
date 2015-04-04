@@ -116,6 +116,18 @@ switch ($showreport){
 		$formdata = new stdClass();
 		$formdata->couponid = $itemid;
 		break;
+		
+		
+	case 'allusers':
+		$report = new enrol_coupon_allusers_report($instance);
+		$formdata = new stdClass();
+		break;
+		
+	case 'setusers':
+		$report = new enrol_coupon_setusers_report($instance);
+		$formdata = new stdClass();
+		$formdata->typekey=$itemid;
+		break;
 /*		
 	case 'allattempts':
 		$report = new mod_tquiz_allattempts_report();
