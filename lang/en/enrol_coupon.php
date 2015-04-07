@@ -177,3 +177,6 @@ $string['allbulkcouponreport'] = 'Bulk/Random Coupons';
 $string['bulkcouponreport'] = 'Bulk/Random Coupons Report';
 $string['nodataavailable'] = 'No data available for display';
 $string['returntoreports'] = 'Return to Reports Home';
+$string['policyagreementclick'] = 'View coupon terms and conditions (new window)';
+$string['coupontermsurl'] = 'Terms of Use URL';
+$string['coupontermsurl_help'] = 'Enter the URL to the coupon terms and conditions if they exist. If this box is not empty the user will be shown a checkbox and a link to view the terms. They must agree and check the checkbox to submit the coupon code.';

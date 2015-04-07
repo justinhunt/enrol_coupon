@@ -102,6 +102,7 @@ if ($mform->is_cancelled()) {
         $instance->customint6     = $data->customint6;
         $instance->customtext1    = $data->customtext1;
         $instance->customtext2    = $data->customtext2;
+		$instance->customtext3    = $data->customtext3;
         $instance->roleid         = $data->roleid;
         $instance->enrolperiod    = $data->enrolperiod;
         $instance->expirynotify   = $data->expirynotify;

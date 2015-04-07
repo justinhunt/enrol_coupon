@@ -162,6 +162,13 @@ class enrol_coupon_enrol_form extends moodleform {
             $mform->addElement('static', 'nocouponcode', '', get_string('nocouponcode', 'enrol_coupon'));
             $mform->addElement('hidden', 'couponcode');
         }
+		
+		$url =$instance->{ENROL_COUPON_COUPONTERMS_URL};
+		if(!empty(trim($url))){
+            $mform->addElement('static', 'policylink', '', '<a href="'.$url.'" onclick="this.target=\'_blank\'">'.get_string('policyagreementclick','enrol_coupon').'</a>');
+            $mform->addElement('checkbox', 'policyagreed', get_string('policyaccept'));
+            $mform->addRule('policyagreed', get_string('policyagree'), 'required', null, 'server');
+		}
 
         $this->add_action_buttons(false, $buttontext);
 

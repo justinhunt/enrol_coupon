@@ -152,6 +152,11 @@ class enrol_coupon_edit_form extends moodleform {
             $mform->addElement('static', 'selfwarn', get_string('instanceeditselfwarning', 'core_enrol'), get_string('instanceeditselfwarningtext', 'core_enrol'));
         }
 
+		//if we require agreement to terms enter url here
+		$mform->addElement('text', ENROL_COUPON_COUPONTERMS_URL, get_string('coupontermsurl', 'enrol_coupon'));
+        $mform->addHelpButton(ENROL_COUPON_COUPONTERMS_URL, 'coupontermsurl', 'enrol_coupon');
+        $mform->setType(ENROL_COUPON_COUPONTERMS_URL, PARAM_URL);
+		
         $this->add_action_buttons(true, ($instance->id ? null : get_string('addinstance', 'enrol')));
 
         $this->set_data($instance);
