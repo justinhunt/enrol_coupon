@@ -106,6 +106,19 @@ class enrol_coupon_renderer extends plugin_renderer_base {
  
         return $this->output->box($output.'<p>'.implode('</p><p>', $links).'</p>', 'generalbox firstpageoptions');
     }
+    
+     /**
+       * Returns HTML to display a single paging bar to provide access to other pages  (usually in a search)
+       * @param int $totalcount The total number of entries available to be paged through
+       * @param int $page The page you are currently viewing
+       * @param int $perpage The number of entries that should be shown per page
+       * @param string|moodle_url $baseurl url of the current page, the $pagevar parameter is added
+       * @param string $pagevar name of page parameter that holds the page number
+       * @return string the HTML to output.
+       */
+    function show_paging_bar($totalcount,$page,$perpage,$baseurl,$pagevar="pageno"){
+    	return $this->output->paging_bar($totalcount,$page,$perpage,$baseurl,$pagevar);
+    }
 	
 	/**
 	 * Return the html table of coupons for a coupon enrol instance
@@ -113,7 +126,7 @@ class enrol_coupon_renderer extends plugin_renderer_base {
 	 * @param integer $courseid
 	 * @return string html of table
 	 */
-	function show_coupons_list($coupons,$instance){
+	function show_coupons_list($coupons,$instance,$unsortedurl,$currentsort){
 	
 		if(!$coupons){
 			return $this->output->heading(get_string('nocoupons','enrol_coupon'), 3, 'main');
@@ -122,15 +135,16 @@ class enrol_coupon_renderer extends plugin_renderer_base {
 		$table = new html_table();
 		$table->id = ENROL_COUPON_FRANKY . '_cpanel';
 		$table->head = array(
-			get_string('couponname', 'enrol_coupon'),
-			get_string('coupontype', 'enrol_coupon'),
-			get_string('couponcode', 'enrol_coupon'),
-			get_string('maxuses', 'enrol_coupon'),
+			html_writer::link(new moodle_url($unsortedurl,array('sort'=>'iddsc')),get_string('id', 'enrol_coupon')),
+			html_writer::link(new moodle_url($unsortedurl,array('sort'=>'namedsc')),get_string('couponname', 'enrol_coupon')),
+			html_writer::link(new moodle_url($unsortedurl,array('sort'=>'typedsc')),get_string('coupontype', 'enrol_coupon')),
+			html_writer::link(new moodle_url($unsortedurl,array('sort'=>'couponcodedsc')),get_string('couponcode', 'enrol_coupon')),
+			html_writer::link(new moodle_url($unsortedurl,array('sort'=>'maxusesdsc')),get_string('maxuses', 'enrol_coupon')),
 			get_string('actions', 'enrol_coupon')
 		);
-		$table->headspan = array(1,1,1,1,3);
+		$table->headspan = array(1,1,1,1,1,3);
 		$table->colclasses = array(
-			'couponname','coupontype', 'couponcode','actions'
+			'couponid','couponname','coupontype', 'couponcode','actions'
 		);
 
 		//sort by start date
@@ -140,7 +154,7 @@ class enrol_coupon_renderer extends plugin_renderer_base {
 		foreach ($coupons as $coupon) {
 			$row = new html_table_row();
 		
-		
+			$couponidcell = new html_table_cell($coupon->id);	
 			$couponnamecell = new html_table_cell($coupon->name);	
 			switch($coupon->type){
 				case ENROL_COUPON_TYPE_STANDARD:
@@ -177,7 +191,7 @@ class enrol_coupon_renderer extends plugin_renderer_base {
 			$deletecell = new html_table_cell($deletelink);
 
 			$row->cells = array(
-				$couponnamecell, $coupontypecell, $couponcodecell, $maxusescell,$reportcell, $editcell, $deletecell
+				$couponidcell, $couponnamecell, $coupontypecell, $couponcodecell, $maxusescell,$reportcell, $editcell, $deletecell
 			);
 			$table->data[] = $row;
 		}

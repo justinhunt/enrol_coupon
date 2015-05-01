@@ -27,9 +27,25 @@ require_once('../../config.php');
 //require_once($CFG->dirroot.'/mod/lesson/locallib.php');
 
 $id = required_param('id', PARAM_INT);
+$perpage = optional_param('perpage',25, PARAM_INT);
+$pageno = optional_param('pageno',0, PARAM_INT);
+$sort = optional_param('sort','iddsc', PARAM_TEXT);
+
 $instance = $DB->get_record('enrol', array('id' => $id), '*', MUST_EXIST);
-$coupons = $DB->get_records('enrol_coupon_coupons',array('instanceid'=>$id));
-$couponusers = $DB->get_records('enrol_coupon_user',array('instanceid'=>$id));
+
+//prepare paging data
+$fields = '*';
+$fromrecord = $pageno * $perpage;
+$couponcount = $DB->count_records('enrol_coupon_coupons',array('instanceid'=>$id));
+if(substr($sort,-3)=='asc'){
+	$use_sort = substr($sort,0,-3) . ' ASC';
+}else{
+	$use_sort = substr($sort,0,-3) . ' DESC';
+} 
+
+//get coupons
+$coupons = $DB->get_records('enrol_coupon_coupons',array('instanceid'=>$id),$use_sort,$fields,$fromrecord,$perpage);
+//$couponusers = $DB->get_records('enrol_coupon_user',array('instanceid'=>$id));
 $courseid=$instance->courseid;
 $course = get_course($courseid);
 $context = context_course::instance($courseid, MUST_EXIST);
@@ -43,7 +59,8 @@ require_capability('moodle/course:enrolreview', $context);
 
 $canconfig = has_capability('moodle/course:enrolconfig', $context);
 
-$PAGE->set_url('/enrol/coupon/viewcoupons.php', array('id'=>$id));
+$unsortedurl = new moodle_url('/enrol/coupon/viewcoupons.php', array('id'=>$id,'perpage'=>$perpage));
+$PAGE->set_url('/enrol/coupon/viewcoupons.php', array('id'=>$id,'perpage'=>$perpage,'sort'=>$sort));
 $PAGE->set_pagelayout('admin');
 $PAGE->set_title(get_string('viewcoupons', 'enrol_coupon'));
 $PAGE->set_heading($course->fullname);
@@ -60,7 +77,13 @@ echo $renderer->header($instance, 'manage', null, get_string('managetab', ENROL_
     echo $renderer->add_edit_page_links($instance);
 
 
-if($coupons){
-	echo $renderer->show_coupons_list($coupons,$instance);
+if($couponcount){
+	$pagingbar ="";
+	if($couponcount > $perpage){
+		$pagingbar =$renderer->show_paging_bar($couponcount, $pageno, $perpage,$PAGE->url,'pageno');
+	}
+	echo $pagingbar;
+	echo $renderer->show_coupons_list($coupons,$instance,$unsortedurl,$sort);
+	echo $pagingbar;
 }
 echo $renderer->footer();
