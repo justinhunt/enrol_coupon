@@ -135,11 +135,11 @@ class enrol_coupon_renderer extends plugin_renderer_base {
 		$table = new html_table();
 		$table->id = ENROL_COUPON_FRANKY . '_cpanel';
 		$table->head = array(
-			html_writer::link(new moodle_url($unsortedurl,array('sort'=>'iddsc')),get_string('id', 'enrol_coupon')),
-			html_writer::link(new moodle_url($unsortedurl,array('sort'=>'namedsc')),get_string('couponname', 'enrol_coupon')),
-			html_writer::link(new moodle_url($unsortedurl,array('sort'=>'typedsc')),get_string('coupontype', 'enrol_coupon')),
-			html_writer::link(new moodle_url($unsortedurl,array('sort'=>'couponcodedsc')),get_string('couponcode', 'enrol_coupon')),
-			html_writer::link(new moodle_url($unsortedurl,array('sort'=>'maxusesdsc')),get_string('maxuses', 'enrol_coupon')),
+			html_writer::link(new moodle_url($unsortedurl,array('sort'=>$currentsort =='iddsc' ? 'idasc' : 'iddsc')),get_string('id', 'enrol_coupon')),
+			html_writer::link(new moodle_url($unsortedurl,array('sort'=>$currentsort =='namedsc' ? 'nameasc' : 'namedsc')),get_string('couponname', 'enrol_coupon')),
+			html_writer::link(new moodle_url($unsortedurl,array('sort'=>$currentsort =='typedsc' ? 'typeasc' : 'typedsc')),get_string('coupontype', 'enrol_coupon')),
+			html_writer::link(new moodle_url($unsortedurl,array('sort'=>$currentsort =='couponcodedsc' ? 'couponcodeasc' : 'couponcodedsc')),get_string('couponcode', 'enrol_coupon')),
+			html_writer::link(new moodle_url($unsortedurl,array('sort'=>$currentsort =='maxusesdsc' ? 'maxusesasc' : 'maxusesdsc')),get_string('maxuses', 'enrol_coupon')),
 			get_string('actions', 'enrol_coupon')
 		);
 		$table->headspan = array(1,1,1,1,1,3);
@@ -148,7 +148,7 @@ class enrol_coupon_renderer extends plugin_renderer_base {
 		);
 
 		//sort by start date
-		core_collator::asort_objects_by_property($coupons,'timecreated',core_collator::SORT_NUMERIC);
+		//core_collator::asort_objects_by_property($coupons,'timecreated',core_collator::SORT_NUMERIC);
 
 		//loop through the homoworks and add to table
 		foreach ($coupons as $coupon) {
