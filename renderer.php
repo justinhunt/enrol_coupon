@@ -311,10 +311,9 @@ class enrol_coupon_report_renderer extends plugin_renderer_base {
 				$datarow .= $quote . $row->{$field} . $quote . $delim ;
 			}
 			 echo $datarow . $newline;
-		}
-        exit();
-        break;
 	}
+         exit();
+}
 /*
 	public function render_delete_allattempts($cm){
 		$deleteallbutton = new single_button(
