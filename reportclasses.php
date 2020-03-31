@@ -48,7 +48,7 @@ abstract class enrol_coupon_base_report {
 	abstract function process_raw_data($formdata);
 	abstract function fetch_formatted_heading();
 	
-	function enrol_coupon_base_report($instance){
+	function __construct($instance){
 		$this->instance = $instance;
 	}
 	

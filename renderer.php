@@ -313,7 +313,6 @@ class enrol_coupon_report_renderer extends plugin_renderer_base {
 			 echo $datarow . $newline;
 		}
         exit();
-        break;
 	}
 /*
 	public function render_delete_allattempts($cm){
