@@ -311,18 +311,11 @@ class enrol_coupon_report_renderer extends plugin_renderer_base {
 				$datarow .= $quote . $row->{$field} . $quote . $delim ;
 			}
 			 echo $datarow . $newline;
-		}
-        exit();
-	}
-/*
-	public function render_delete_allattempts($cm){
-		$deleteallbutton = new single_button(
-				new moodle_url('/enrol/coupon/manageattempts.php',array('id'=>$cm->id,'action'=>'confirmdeleteall')), 
-				get_string('deleteallattempts','tquiz'), 'get');
-		$ret =  html_writer::div( $this->render($deleteallbutton) ,ENROL_COUPON_FRANKY . '_actionbuttons');
-		return $ret;
-	}
-*/	
+
+	    }
+         exit();
+    }
+
 	public function render_section_html($sectiontitle, $report, $head, $rows, $fields) {
 		global $CFG;
 		if(empty($rows)){

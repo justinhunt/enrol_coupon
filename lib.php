@@ -482,14 +482,21 @@ class enrol_coupon_plugin extends enrol_plugin {
         if (!empty($CFG->coursecontact)) {
             $croles = explode(',', $CFG->coursecontact);
             list($sort, $sortparams) = users_order_by_sql('u');
-            $rusers = get_role_users($croles, $context, true, '', 'r.sortorder ASC, ' . $sort, null, '', '', '', '', $sortparams);
+            // We only use the first user.
+			$i = 0;
+			do {
+				$allnames = get_all_user_name_fields(true, 'u');
+				$rusers = get_role_users($croles[$i], $context, true, 'u.id,  u.confirmed, u.username, '. $allnames . ',
+				u.email, r.sortorder, ra.id', 'r.sortorder, ra.id ASC, ' . $sort, null, '', '', '', '', $sortparams);
+				$i++;
+			} while (empty($rusers) && !empty($croles[$i]));
         }
         if ($rusers) {
             $contact = reset($rusers);
         } else {
             $contact = core_user::get_support_user();
         }
-
+        
         // Directly emailing welcome message rather than using messaging.
         email_to_user($user, $contact, $subject, $messagetext, $messagehtml);
     }
@@ -633,6 +640,28 @@ class enrol_coupon_plugin extends enrol_plugin {
         }
         return $actions;
     }
+    
+    /**
+	 * Is it possible to hide/show enrol instance via standard UI?
+	 *
+	 * @param stdClass $instance
+	 * @return bool
+	 */
+	public function can_hide_show_instance($instance) {
+		$context = context_course::instance($instance->courseid);
+		return has_capability('enrol/coupon:config', $context);
+	}
+	
+	/**
+	 * Is it possible to delete enrol instance via standard UI?
+	 *
+	 * @param stdClass $instance
+	 * @return bool
+	 */
+	public function can_delete_instance($instance) {
+		$context = context_course::instance($instance->courseid);
+		return has_capability('enrol/coupon:config', $context);
+	}
     
     /**
      * Called when user is about to be deleted
